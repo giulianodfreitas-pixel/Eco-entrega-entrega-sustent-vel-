@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Eco Entrega — Landing Page</title>
+  <style>
+    :root{--brand:#167a3c;--accent:#2f9e4a;--muted:#6b6b6b}
+    body{font-family:Arial,Helvetica,sans-serif;margin:0;background:#f4f7f6;color:#222}
+    .hero{background:white;padding:40px 20px;display:flex;flex-wrap:wrap;align-items:center;gap:20px;max-width:1100px;margin:30px auto;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,0.08)}
+    .hero .left{flex:1 1 420px}
+    .hero h1{color:var(--brand);margin:0 0 10px;font-size:30px}
+    .hero p.lead{margin:0 0 18px;color:var(--muted);line-height:1.5}
+    .hero img{max-width:420px;width:100%;border-radius:10px;box-shadow:0 6px 18px rgba(0,0,0,0.06)}
+    section.features{max-width:900px;margin:10px auto;padding:0 20px}
+    ul.benef{display:flex;flex-wrap:wrap;gap:12px;padding:0;list-style:none;margin:18px 0 0}
+    ul.benef li{background:white;padding:12px 14px;border-radius:8px;flex:1 1 260px;box-shadow:0 4px 10px rgba(0,0,0,0.04)}
+    .cta-box{background:linear-gradient(180deg,rgba(22,122,60,0.06),rgba(47,158,74,0.02));padding:18px;border-radius:10px;margin-top:18px}
+    form{display:flex;flex-direction:column;gap:10px}
+    input,button{padding:12px 14px;font-size:15px;border-radius:8px;border:1px solid #d8d8d8}
+    input:focus{outline:none;box-shadow:0 0 0 3px rgba(22,122,60,0.08)}
+    button{background:var(--brand);color:white;border:none;cursor:pointer;font-weight:600}
+    button.secondary{background:white;color:var(--brand);border:1px solid var(--brand)}
+    footer{max-width:900px;margin:30px auto;text-align:center;color:var(--muted);padding:10px}
+    .note{font-size:13px;color:#555}
+    @media(max-width:720px){
+      .hero{flex-direction:column}
+      .hero img{max-width:100%}
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="hero" role="banner">
+      <div class="left">
+        <h1>Eco Entrega — Entregas Sustentáveis e Inteligentes</h1>
+        <p class="lead">Reduza custos, agilize suas entregas e mostre ao cliente que sua marca se preocupa com o planeta. Teste o MVP da Eco Entrega para pequenos comércios locais.</p>
+
+        <div class="cta-box" aria-labelledby="cta-title">
+          <h3 id="cta-title" style="margin:0 0 8px;color:var(--brand)">Participe do teste inicial</h3>
+          <p class="note">Preencha o formulário abaixo — você receberá uma proposta exclusiva para parceiros do MVP.</p>
+
+          <form id="leadForm" onsubmit="return handleSubmit(event)">
+            <input id="name" type="text" placeholder="Seu nome" required />
+            <input id="email" type="email" placeholder="Seu e-mail" required />
+            <input id="whatsapp" type="text" placeholder="Seu WhatsApp (com DDD)" required />
+            <button type="submit">Quero participar do MVP</button>
+            <button type="button" class="secondary" onclick="downloadLeads()">Baixar leads coletados (CSV)</button>
+          </form>
+
+          <p id="status" class="note" style="margin-top:10px;display:none"></p>
+        </div>
+      </div>
+
+      <!-- Image provided by user (local path) -->
+      <img src="/mnt/data/eco entrega.png" alt="Logo Eco Entrega - entrega sustentável" />
+    </div>
+
+    <section class="features" aria-labelledby="features-title">
+      <h2 id="features-title" style="color:#167a3c">Como a Eco Entrega ajuda seu negócio</h2>
+      <ul class="benef" role="list">
+        <li><strong>Menor custo</strong><div class="note">Rotas otimizadas e uso de modais econômicos reduzem sua despesa com entregas.</div></li>
+        <li><strong>Entrega rápida</strong><div class="note">Rastreamento simples e parceiros treinados para cumprir prazos.</div></li>
+        <li><strong>Marca sustentável</strong><div class="note">Atraia clientes conscientes com comunicação ecológica.</div></li>
+      </ul>
+
+      <div style="margin-top:18px" class="note">Obs: Este formulário salva os contatos localmente no seu navegador e gera um arquivo CSV para download ao enviar — ideal para validar o MVP sem infraestrutura de backend. Para receber leads centralizados (Google Sheets, Mailchimp, RD Station) eu posso ajudar na integração.</div>
+    </section>
+  </main>
+
+  <footer>
+    <div>© 2025 — Eco Entrega | Logística Sustentável</div>
+  </footer>
+
+  <script>
+    // simple local capture and CSV download
+    const STORAGE_KEY = 'eco_entrega_leads_v1';
+    function getLeads() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      } catch(e){ return []; }
+    }
+    function saveLeads(leads){ localStorage.setItem(STORAGE_KEY, JSON.stringify(leads)); }
+
+    function handleSubmit(ev){
+      ev.preventDefault();
+      const name = document.getElementById('name').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const whatsapp = document.getElementById('whatsapp').value.trim();
+      if(!name||!email||!whatsapp){ alert('Preencha todos os campos'); return false; }
+      const entry = {name,email,whatsapp,ts: new Date().toISOString()};
+      const leads = getLeads();
+      leads.push(entry);
+      saveLeads(leads);
+      document.getElementById('status').style.display='block';
+      document.getElementById('status').textContent = 'Obrigado! Seu interesse foi registrado. Baixe o CSV ou envie-o ao seu e-mail.';
+      // Offer automatic CSV download
+      downloadCSV([entry], `lead_${Date.now()}.csv`);
+      // clear form
+      ev.target.reset();
+      return false;
+    }
+
+    function downloadCSV(rows, filename='leads.csv'){
+      const header = ['Nome','Email','WhatsApp','Timestamp'];
+      const lines = [header.join(',')].concat(rows.map(r => {
+        return [r.name, r.email, r.whatsapp, r.ts].map(v => {
+          if(typeof v === 'string' && (v.includes(',')||v.includes('"')||v.includes('\n'))){
+            return '"' + v.replace(/"/g,'""') + '"';
+          }
+          return v;
+        }).join(',');
+      }));
+      const blob = new Blob([lines.join('\n')], {type:'text/csv;charset=utf-8;'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url),5000);
+    }
+
+    function downloadLeads(){
+      const leads = getLeads();
+      if(!leads.length){ alert('Nenhum lead coletado ainda.'); return; }
+      downloadCSV(leads, `eco_entrega_leads_${Date.now()}.csv`);
+    }
+  </script>
+</body>
+</html>
